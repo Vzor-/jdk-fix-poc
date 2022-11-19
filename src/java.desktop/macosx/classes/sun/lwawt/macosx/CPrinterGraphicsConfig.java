@@ -224,6 +224,6 @@ public final class CPrinterGraphicsConfig extends GraphicsConfiguration {
      */
     @Override
     public Rectangle getBounds() {
-        return new Rectangle(0, 0, (int)pf.getWidth(), (int)pf.getHeight());
+        return new Rectangle(0, 0, (int)pf.getPaper().getWidth(), (int)pf.getPaper().getHeight());
     }
 }

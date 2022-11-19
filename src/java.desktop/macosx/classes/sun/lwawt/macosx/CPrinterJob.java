@@ -27,6 +27,7 @@ package sun.lwawt.macosx;
 
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.print.*;
@@ -333,6 +334,7 @@ public final class CPrinterJob extends RasterPrinterJob {
             int[][] prMembers = (pr == null) ? new int[0][0] : pr.getMembers();
             int loopi = 0;
             do {
+                System.out.println("--------");
                 if (EventQueue.isDispatchThread()) {
                     // This is an AWT EventQueue, and this print rendering loop needs to block it.
 
@@ -358,6 +360,7 @@ public final class CPrinterJob extends RasterPrinterJob {
                         e.printStackTrace();
                     }
               } else {
+                    System.out.println("--------2");
                     // Fire off the print rendering loop on the AppKit, and block this thread
                     //  until it is done.
                     // But don't actually block... we need to come back here!
@@ -370,11 +373,15 @@ public final class CPrinterJob extends RasterPrinterJob {
                     }
                 }
                 if (++loopi < prMembers.length) {
+
+                    System.out.println("--------3");
                      firstPage = prMembers[loopi][0]-1;
                      lastPage = prMembers[loopi][1] -1;
                 }
             }  while (loopi < prMembers.length);
         } finally {
+
+            System.out.println("--------4");
             synchronized (this) {
                 // NOTE: Native code shouldn't allow exceptions out while
                 // printing. They should cancel the print loop.
@@ -684,6 +691,7 @@ public final class CPrinterJob extends RasterPrinterJob {
                     page.getImageableY(),
                     page.getImageableWidth(),
                     page.getImageableHeight());
+        System.out.println("PageFormat " + pageFormatArea);
         return pageFormatArea;
     }
 
@@ -713,6 +721,7 @@ public final class CPrinterJob extends RasterPrinterJob {
         BufferedImage bimg = new BufferedImage((int)Math.round(page.getWidth()), (int)Math.round(page.getHeight()), BufferedImage.TYPE_INT_ARGB_PRE);
         PeekGraphics peekGraphics = createPeekGraphics(bimg.createGraphics(), printerJob);
         Rectangle2D pageFormatArea = getPageFormatArea(page);
+        peekGraphics.transform(new AffineTransform(page.getMatrix()));
         initPrinterGraphics(peekGraphics, pageFormatArea);
         return peekGraphics;
     }
@@ -723,6 +732,7 @@ public final class CPrinterJob extends RasterPrinterJob {
                                         final PageFormat page, // Client class
                                         final int pageIndex,
                                         final long context) throws PrinterException {
+        System.out.println("page " + pageIndex + " orientation " + page.getOrientation()+ " imageW " + page.getImageableWidth()+ " W " + page.getWidth());
         // This is called from the native side.
         Runnable r = new Runnable() { public void run() {
             try {
@@ -731,11 +741,19 @@ public final class CPrinterJob extends RasterPrinterJob {
                     defaultFont = new Font("Dialog", Font.PLAIN, 12);
                 }
                 Graphics2D delegate = new SunGraphics2D(sd, Color.black, Color.white, defaultFont);
+                delegate.transform(new AffineTransform(page.getMatrix()));
 
                 Graphics2D pathGraphics = new CPrinterGraphics(delegate, printerJob); // Just stores delegate into an ivar
                 Rectangle2D pageFormatArea = getPageFormatArea(page);
+
+//                pathGraphics.transform(new AffineTransform(page.getMatrix()));
+//                pathGraphics.translate(-20,0);
+//                pathGraphics.setClip(0,0,96, 40);
                 initPrinterGraphics(pathGraphics, pageFormatArea);
+                System.out.println("AffineTransform " + pathGraphics.getTransform().toString());
+                System.out.println("Device Config " + pathGraphics.getDeviceConfiguration());
                 painter.print(pathGraphics, page, pageIndex);
+
                 delegate.dispose();
                 delegate = null;
         } catch (PrinterException pe) { throw new java.lang.reflect.UndeclaredThrowableException(pe); }
@@ -768,13 +786,14 @@ public final class CPrinterJob extends RasterPrinterJob {
                     if (printable != null) {
                         BufferedImage bimg =
                               new BufferedImage(
-                                  (int)Math.round(pageFormat.getWidth()),
-                                  (int)Math.round(pageFormat.getHeight()),
+                                  (int)Math.round(pageFormat.getPaper().getWidth()),
+                                  (int)Math.round(pageFormat.getPaper().getHeight()),
                                   BufferedImage.TYPE_INT_ARGB_PRE);
                         PeekGraphics peekGraphics =
                          createPeekGraphics(bimg.createGraphics(), printerJob);
                         Rectangle2D pageFormatArea =
                              getPageFormatArea(pageFormat);
+                        peekGraphics.transform(new AffineTransform(pageFormat.getMatrix()));
                         initPrinterGraphics(peekGraphics, pageFormatArea);
 
                         // Do the assignment here!
@@ -800,6 +819,14 @@ public final class CPrinterJob extends RasterPrinterJob {
     }
 
     private Rectangle2D printAndGetPageFormatArea(final Printable printable, final Graphics graphics, final PageFormat pageFormat, final int pageIndex) {
+//        System.out.println("getImageableX " + nil.getPaper().getImageableX());
+//        System.out.println("getWidth " + nil.getPaper().getWidth());
+//        final PageFormat pageFormat = new PageFormat();
+//        Paper p = new Paper();
+//        p.setImageableArea(0,0,40,96);
+//        pageFormat.setPaper(p);
+//        pageFormat.setOrientation(PageFormat.LANDSCAPE);
+        
         final Rectangle2D[] ret = new Rectangle2D[1];
 
         Runnable r = new Runnable() {
@@ -810,7 +837,8 @@ public final class CPrinterJob extends RasterPrinterJob {
                         int pageResult = printable.print(
                             graphics, pageFormat, pageIndex);
                         if (pageResult != Printable.NO_SUCH_PAGE) {
-                            ret[0] = getPageFormatArea(pageFormat);
+//                            ret[0] = getPageFormatArea(pageFormat);
+                            ret[0] = new Rectangle2D.Double(0,0,pageFormat.getPaper().getWidth(), pageFormat.getPaper().getHeight());
                         }
                     } catch (Throwable t) {
                         printErrorRef.compareAndSet(null, t);
