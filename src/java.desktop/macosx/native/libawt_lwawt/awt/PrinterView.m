@@ -33,7 +33,6 @@
 #import "JNIUtilities.h"
 
 static jclass sjc_CPrinterJob = NULL;
-static int mode = 0;
 #define GET_CPRINTERJOB_CLASS() (sjc_CPrinterJob, "sun/lwawt/macosx/CPrinterJob");
 #define GET_CPRINTERJOB_CLASS_RETURN(ret) GET_CLASS_RETURN(sjc_CPrinterJob, "sun/lwawt/macosx/CPrinterJob", ret);
 
@@ -174,9 +173,6 @@ static int mode = 0;
     //assert(fCurPainter == NULL);
     //assert(fCurPeekGraphics == NULL);
 
-    DECLARE_METHOD_RETURN(jm_logstr, sjc_CPrinterJob, "logstr", "(Ljava/lang/String;)V", NSZeroRect);
-    (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"rectForPage"));
-
     if(fCurPageFormat != NULL) {
         (*env)->DeleteGlobalRef(env, fCurPageFormat);
     }
@@ -225,9 +221,6 @@ static int mode = 0;
         if (pageFormatArea != NULL) {
             NSPrintingOrientation currentOrientation =
                     [[[NSPrintOperation currentOperation] printInfo] orientation];
-
-    DECLARE_METHOD_RETURN(jm_logstr, sjc_CPrinterJob, "logstr", "(Ljava/lang/String;)V", NSZeroRect);
-    (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, [NSString stringWithFormat:@"orientation = %d", currentOrientation]));
             // set page orientation
             jdouble jFormatW = (*env)->CallDoubleMethod(env, fCurPageFormat, jm_getWidth); // AWT_THREADING Safe (!appKit)
             CHECK_EXCEPTION();
@@ -248,8 +241,6 @@ static int mode = 0;
 
                 case java_awt_print_PageFormat_LANDSCAPE:
                 case java_awt_print_PageFormat_REVERSE_LANDSCAPE:
-                (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, [NSString stringWithFormat:@"is landscape in agreement? = %i", landscape]));
-                    CHECK_EXCEPTION();
                     if (landscape) {
                         [[[NSPrintOperation currentOperation] printInfo]
                                             setOrientation:NSPortraitOrientation];
@@ -259,12 +250,9 @@ static int mode = 0;
                     }
                     break;
                 }
-             mode++;
              currentOrientation =
                     [[[NSPrintOperation currentOperation] printInfo] orientation];
 
-    (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, [NSString stringWithFormat:@"new orientation = %d", currentOrientation]));
-            CHECK_EXCEPTION();
             result = JavaToNSRect(env, pageFormatArea);
             (*env)->DeleteLocalRef(env, pageFormatArea);
         } else {

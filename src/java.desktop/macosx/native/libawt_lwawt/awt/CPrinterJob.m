@@ -208,8 +208,6 @@ static void javaPaperToNSPrintInfo(JNIEnv* env, jobject src, NSPrintInfo* dst)
 
     GET_PAGEFORMAT_CLASS();
     GET_PAPER_CLASS();
-    DECLARE_METHOD(jm_logstr, sjc_CPrinterJob, "logstr", "(Ljava/lang/String;)V");
-    (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"javaPaperToNSPrintInfo"));
     DECLARE_METHOD(jm_getWidth, sjc_Paper, "getWidth", "()D");
     DECLARE_METHOD(jm_getHeight, sjc_Paper, "getHeight", "()D");
     DECLARE_METHOD(jm_getImageableX, sjc_Paper, "getImageableX", "()D");
@@ -255,8 +253,6 @@ static void nsPrintInfoToJavaPageFormat(JNIEnv* env, NSPrintInfo* src, jobject d
     DECLARE_METHOD(jm_setOrientation, sjc_PageFormat, "setOrientation", "(I)V");
     DECLARE_METHOD(jm_setPaper, sjc_PageFormat, "setPaper", "(Ljava/awt/print/Paper;)V");
     DECLARE_METHOD(jm_Paper_ctor, sjc_Paper, "<init>", "()V");
-    DECLARE_METHOD(jm_logstr, sjc_CPrinterJob, "logstr", "(Ljava/lang/String;)V");
-    (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"nsPrintInfoToJavaPageFormat"));
 
     jint jOrientation;
     switch ([src orientation]) {
@@ -329,31 +325,22 @@ static void javaPageFormatToNSPrintInfo(JNIEnv* env, jobject srcPrintJob, jobjec
     javaPaperToNSPrintInfo(env, paper, dstPrintInfo);
     (*env)->DeleteLocalRef(env, paper);
 
-    DECLARE_METHOD(jm_logstr, sjc_CPrinterJob, "logstr", "(Ljava/lang/String;)V");
-            (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"javaPageFormatToNSPrintInfo"));
-
     switch ((*env)->CallIntMethod(env, srcPageFormat, jm_getOrientation)) { // AWT_THREADING Safe (!appKit)
         case java_awt_print_PageFormat_PORTRAIT: {
-            (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"portrait"));
 //             if (srcPageFormat)
             [dstPrintInfo setOrientation:NS_PORTRAIT];
             break;
         }
         case java_awt_print_PageFormat_LANDSCAPE: {
-            (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"landscape"));
             [dstPrintInfo setOrientation:NS_LANDSCAPE]; //+++gdb Are LANDSCAPE and REVERSE_LANDSCAPE still inverted?
             break;
         }
         // AppKit printing doesn't support REVERSE_LANDSCAPE. Radar 2960295.
         case java_awt_print_PageFormat_REVERSE_LANDSCAPE:{
-
-            (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"reverse landscape"));
             [dstPrintInfo setOrientation:NS_LANDSCAPE]; //+++gdb Are LANDSCAPE and REVERSE_LANDSCAPE still inverted?
             break;
 }
         default:{
-
-            (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"default"));
             [dstPrintInfo setOrientation:NS_PORTRAIT];
             break;}
     }
@@ -382,8 +369,6 @@ static void nsPrintInfoToJavaPrinterJob(JNIEnv* env, NSPrintInfo* src, jobject d
     DECLARE_METHOD(jm_setPrintToFile, sjc_CPrinterJob, "setPrintToFile", "(Z)V");
     DECLARE_METHOD(jm_setDestinationFile, sjc_CPrinterJob, "setDestinationFile", "(Ljava/lang/String;)V");
 
-    DECLARE_METHOD(jm_logstr, sjc_CPrinterJob, "logstr", "(Ljava/lang/String;)V");
-    (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"nsPrintInfoToJavaPrinterJob"));
     // get the selected printer's name, and set the appropriate PrintService on the Java side
     NSString *name = [[src printer] name];
     jstring printerName = NSStringToJavaString(env, name);
@@ -628,14 +613,11 @@ JNIEXPORT jboolean JNICALL Java_sun_lwawt_macosx_CPrinterJob_printLoop
     DECLARE_METHOD_RETURN(jm_getPrinterName, sjc_CPrinterJob, "getPrinterName", "()Ljava/lang/String;", NO);
     DECLARE_METHOD_RETURN(jm_getPageable, sjc_CPrinterJob, "getPageable", "()Ljava/awt/print/Pageable;", NO);
     DECLARE_METHOD_RETURN(jm_getPrinterTray, sjc_CPrinterJob, "getPrinterTray", "()Ljava/lang/String;", NO);
-    DECLARE_METHOD_RETURN(jm_logstr, sjc_CPrinterJob, "logstr", "(Ljava/lang/String;)V", NO);
 
 
     jboolean retVal = JNI_FALSE;
 
 JNI_COCOA_ENTER(env);
-
-    (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"PrinterJob_printLoop"));
     // Get the first page's PageFormat for setting things up (This introduces
     //  and is a facet of the same problem in Radar 2818593/2708932).
     jobject page = (*env)->CallObjectMethod(env, jthis, jm_getPageFormat, 0); // AWT_THREADING Safe (!appKit)

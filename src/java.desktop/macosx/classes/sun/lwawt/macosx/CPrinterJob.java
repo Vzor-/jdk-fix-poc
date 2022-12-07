@@ -739,7 +739,6 @@ public final class CPrinterJob extends RasterPrinterJob {
                 Rectangle2D pageFormatArea = getPageFormatArea(page);
                 initPrinterGraphics(pathGraphics, pageFormatArea);
                 painter.print(pathGraphics, page, pageIndex);
-
                 delegate.dispose();
                 delegate = null;
         } catch (PrinterException pe) { throw new java.lang.reflect.UndeclaredThrowableException(pe); }
@@ -815,7 +814,6 @@ public final class CPrinterJob extends RasterPrinterJob {
                         int pageResult = printable.print(
                             graphics, pageFormat, pageIndex);
                         if (pageResult != Printable.NO_SUCH_PAGE) {
-//                            ret[0] = getPageFormatArea(pageFormat);
                             ret[0] = new Rectangle2D.Double(0,0,pageFormat.getPaper().getWidth(), pageFormat.getPaper().getHeight());
                         }
                     } catch (Throwable t) {
