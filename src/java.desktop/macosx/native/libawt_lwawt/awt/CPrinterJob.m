@@ -336,25 +336,25 @@ static void javaPageFormatToNSPrintInfo(JNIEnv* env, jobject srcPrintJob, jobjec
         case java_awt_print_PageFormat_PORTRAIT: {
             (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"portrait"));
 //             if (srcPageFormat)
-//             [dstPrintInfo setOrientation:NS_PORTRAIT];
+            [dstPrintInfo setOrientation:NS_PORTRAIT];
             break;
         }
         case java_awt_print_PageFormat_LANDSCAPE: {
             (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"landscape"));
-//             [dstPrintInfo setOrientation:NS_LANDSCAPE]; //+++gdb Are LANDSCAPE and REVERSE_LANDSCAPE still inverted?
+            [dstPrintInfo setOrientation:NS_LANDSCAPE]; //+++gdb Are LANDSCAPE and REVERSE_LANDSCAPE still inverted?
             break;
         }
         // AppKit printing doesn't support REVERSE_LANDSCAPE. Radar 2960295.
         case java_awt_print_PageFormat_REVERSE_LANDSCAPE:{
 
             (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"reverse landscape"));
-//             [dstPrintInfo setOrientation:NS_LANDSCAPE]; //+++gdb Are LANDSCAPE and REVERSE_LANDSCAPE still inverted?
+            [dstPrintInfo setOrientation:NS_LANDSCAPE]; //+++gdb Are LANDSCAPE and REVERSE_LANDSCAPE still inverted?
             break;
 }
         default:{
 
             (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, @"default"));
-//             [dstPrintInfo setOrientation:NS_PORTRAIT];
+            [dstPrintInfo setOrientation:NS_PORTRAIT];
             break;}
     }
     CHECK_EXCEPTION();

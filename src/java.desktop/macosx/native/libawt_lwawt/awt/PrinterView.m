@@ -164,6 +164,8 @@ static int mode = 0;
                           "(Ljava/awt/print/Printable;Ljava/awt/Graphics;Ljava/awt/print/PageFormat;I)Ljava/awt/geom/Rectangle2D;", NSZeroRect);
     DECLARE_CLASS_RETURN(sjc_PageFormat, "java/awt/print/PageFormat", NSZeroRect);
     DECLARE_METHOD_RETURN(jm_getOrientation, sjc_PageFormat, "getOrientation", "()I", NSZeroRect);
+    DECLARE_METHOD_RETURN(jm_getWidth, sjc_PageFormat, "getWidth", "()D", NSZeroRect);
+    DECLARE_METHOD_RETURN(jm_getHeight, sjc_PageFormat, "getHeight", "()D", NSZeroRect);
 
     // Assertions removed, and corresponding DeleteGlobalRefs added, for radr://3962543
     // Actual fix that will keep these assertions from being true is radr://3205462 ,
@@ -227,30 +229,36 @@ static int mode = 0;
     DECLARE_METHOD_RETURN(jm_logstr, sjc_CPrinterJob, "logstr", "(Ljava/lang/String;)V", NSZeroRect);
     (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, [NSString stringWithFormat:@"orientation = %d", currentOrientation]));
             // set page orientation
-            switch (mode) {
-                case 0:
-                        [[[NSPrintOperation currentOperation] printInfo]
-                                            setOrientation:NSLandscapeOrientation];
-                        break;
-                case 1:
-                        [[[NSPrintOperation currentOperation] printInfo]
-                                            setOrientation:NSLandscapeOrientation];
-                        break;
-                case 2:
-                        [[[NSPrintOperation currentOperation] printInfo]
-                                            setOrientation:NSPortraitOrientation];
-                        break;
-                case 3:
-                        [[[NSPrintOperation currentOperation] printInfo]
-                                            setOrientation:NSPortraitOrientation];
-                        break;
+            jdouble jFormatW = (*env)->CallDoubleMethod(env, fCurPageFormat, jm_getWidth); // AWT_THREADING Safe (!appKit)
+            CHECK_EXCEPTION();
+            jdouble jFormatH = (*env)->CallDoubleMethod(env, fCurPageFormat, jm_getHeight); // AWT_THREADING Safe (!appKit)
+            CHECK_EXCEPTION();
+            bool landscape = jFormatW > jFormatH;
+            switch ((*env)->CallIntMethod(env, fCurPageFormat, jm_getOrientation)) {
+                case java_awt_print_PageFormat_PORTRAIT:
                 default:
-//                     if (currentOrientation != NSPortraitOrientation) {
+                    if (landscape) {
+                        [[[NSPrintOperation currentOperation] printInfo]
+                                            setOrientation:NSLandscapeOrientation];
+                    } else {
                         [[[NSPrintOperation currentOperation] printInfo]
                                             setOrientation:NSPortraitOrientation];
-//                     }
+                    }
                     break;
-             }
+
+                case java_awt_print_PageFormat_LANDSCAPE:
+                case java_awt_print_PageFormat_REVERSE_LANDSCAPE:
+                (*env)->CallVoidMethod(env, sjc_CPrinterJob, jm_logstr, NSStringToJavaString(env, [NSString stringWithFormat:@"is landscape in agreement? = %i", landscape]));
+                    CHECK_EXCEPTION();
+                    if (landscape) {
+                        [[[NSPrintOperation currentOperation] printInfo]
+                                            setOrientation:NSPortraitOrientation];
+                    } else {
+                        [[[NSPrintOperation currentOperation] printInfo]
+                                            setOrientation:NSLandscapeOrientation];
+                    }
+                    break;
+                }
              mode++;
              currentOrientation =
                     [[[NSPrintOperation currentOperation] printInfo] orientation];
