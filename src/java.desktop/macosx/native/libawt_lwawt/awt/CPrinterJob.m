@@ -330,13 +330,16 @@ static void javaPageFormatToNSPrintInfo(JNIEnv* env, jobject srcPrintJob, jobjec
 //             if (srcPageFormat)
             [dstPrintInfo setOrientation:NS_PORTRAIT];
             break;
+
         case java_awt_print_PageFormat_LANDSCAPE:
             [dstPrintInfo setOrientation:NS_LANDSCAPE]; //+++gdb Are LANDSCAPE and REVERSE_LANDSCAPE still inverted?
             break;
+
         // AppKit printing doesn't support REVERSE_LANDSCAPE. Radar 2960295.
         case java_awt_print_PageFormat_REVERSE_LANDSCAPE:
             [dstPrintInfo setOrientation:NS_LANDSCAPE]; //+++gdb Are LANDSCAPE and REVERSE_LANDSCAPE still inverted?
             break;
+
         default:
             [dstPrintInfo setOrientation:NS_PORTRAIT];
             break;
