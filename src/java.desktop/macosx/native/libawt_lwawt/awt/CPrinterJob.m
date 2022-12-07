@@ -326,23 +326,20 @@ static void javaPageFormatToNSPrintInfo(JNIEnv* env, jobject srcPrintJob, jobjec
     (*env)->DeleteLocalRef(env, paper);
 
     switch ((*env)->CallIntMethod(env, srcPageFormat, jm_getOrientation)) { // AWT_THREADING Safe (!appKit)
-        case java_awt_print_PageFormat_PORTRAIT: {
+        case java_awt_print_PageFormat_PORTRAIT:
 //             if (srcPageFormat)
             [dstPrintInfo setOrientation:NS_PORTRAIT];
             break;
-        }
-        case java_awt_print_PageFormat_LANDSCAPE: {
+        case java_awt_print_PageFormat_LANDSCAPE:
             [dstPrintInfo setOrientation:NS_LANDSCAPE]; //+++gdb Are LANDSCAPE and REVERSE_LANDSCAPE still inverted?
             break;
-        }
         // AppKit printing doesn't support REVERSE_LANDSCAPE. Radar 2960295.
-        case java_awt_print_PageFormat_REVERSE_LANDSCAPE:{
+        case java_awt_print_PageFormat_REVERSE_LANDSCAPE:
             [dstPrintInfo setOrientation:NS_LANDSCAPE]; //+++gdb Are LANDSCAPE and REVERSE_LANDSCAPE still inverted?
             break;
-}
-        default:{
+        default:
             [dstPrintInfo setOrientation:NS_PORTRAIT];
-            break;}
+            break;
     }
     CHECK_EXCEPTION();
 
@@ -607,13 +604,13 @@ JNIEXPORT jboolean JNICALL Java_sun_lwawt_macosx_CPrinterJob_printLoop
   (JNIEnv *env, jobject jthis, jboolean blocks, jint firstPage, jint lastPage)
 {
     AWT_ASSERT_NOT_APPKIT_THREAD;
+
     GET_CPRINTERJOB_CLASS_RETURN(NO);
     DECLARE_METHOD_RETURN(jm_getPageFormat, sjc_CPrinterJob, "getPageFormat", "(I)Ljava/awt/print/PageFormat;", NO);
     DECLARE_METHOD_RETURN(jm_getPageFormatArea, sjc_CPrinterJob, "getPageFormatArea", "(Ljava/awt/print/PageFormat;)Ljava/awt/geom/Rectangle2D;", NO);
     DECLARE_METHOD_RETURN(jm_getPrinterName, sjc_CPrinterJob, "getPrinterName", "()Ljava/lang/String;", NO);
     DECLARE_METHOD_RETURN(jm_getPageable, sjc_CPrinterJob, "getPageable", "()Ljava/awt/print/Pageable;", NO);
     DECLARE_METHOD_RETURN(jm_getPrinterTray, sjc_CPrinterJob, "getPrinterTray", "()Ljava/lang/String;", NO);
-
 
     jboolean retVal = JNI_FALSE;
 

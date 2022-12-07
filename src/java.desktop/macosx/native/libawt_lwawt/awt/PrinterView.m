@@ -214,7 +214,6 @@ static jclass sjc_CPrinterJob = NULL;
         (*env)->DeleteLocalRef(env, peekGraphics);
 
         // Actually print and get the PageFormatArea
-        //peekGraphics
         jobject pageFormatArea = (*env)->CallObjectMethod(env, fPrinterJob, jm_printAndGetPageFormatArea, fCurPainter,
                                     fCurPeekGraphics, fCurPageFormat, jPageNumber);
         CHECK_EXCEPTION();
@@ -250,9 +249,7 @@ static jclass sjc_CPrinterJob = NULL;
                     }
                     break;
                 }
-             currentOrientation =
-                    [[[NSPrintOperation currentOperation] printInfo] orientation];
-
+            CHECK_EXCEPTION();
             result = JavaToNSRect(env, pageFormatArea);
             (*env)->DeleteLocalRef(env, pageFormatArea);
         } else {
